@@ -64,7 +64,11 @@
     <nav class="navbar navbar-main navbar-expand-lg px-0 mx-4 shadow-none border-radius-xl " id="navbarBlur" data-scroll="false">
         <div class="container-fluid py-1 px-3">
           <nav aria-label="breadcrumb">
-            <h6 class="font-weight-bolder text-white mb-0">Chi Tiết Giảng Viên</h6>
+            {% if teachers[0][12] != none %}
+              <h6 class="font-weight-bolder text-white mb-0">Lĩnh vực {{ teachers[0][12] }}</h6>
+            {% else %}
+              <h6 class="font-weight-bolder text-white mb-0">Chi Tiết Giảng Viên</h6>
+            {% endif %}
           </nav>
           <div class="collapse navbar-collapse mt-sm-0 mt-2 me-md-0 me-sm-4" id="navbar">
             <div class="ms-md-auto pe-md-3 d-flex align-items-center">
@@ -150,7 +154,11 @@
         <div class="col-md-8 mt-4">
           <div class="card">
             <div class="card-header pb-0 px-3">
-              <h6 class="mb-0">List page</h6>
+              <h6 class="mb-0">Danh sách các bài báo
+                {% if teachers[0] != none %}
+                về {{ teachers[0][12] }}
+                {% endif %}
+              </h6>
             </div>
             <div class="card-body pt-4 p-3">
               <ul class="list-group">
@@ -168,6 +176,34 @@
               </ul>
             </div>
             <!-- Paginate -->
+            <nav aria-label="Page navigation example">
+              <ul class="pagination justify-content-end">
+                <li class="page-item">
+                  {% if prev >=1 %}
+                  <a class="page-link" href="{{ url_for('getTeacherWithCluster', id=teacher[0], page = prev, clusterId = clusterid) }}" tabindex="-1">
+                    <i class="fa fa-angle-left"></i>
+                    <span class="sr-only">Previous</span>
+                  </a>
+                  {% endif %}
+                </li>
+                {% for page in range(page) %}
+                  {% if current == loop.index %}
+                    <li class="page-item"><a  class="page-link bg-primary text-light" href="{{ url_for('getTeacherWithCluster', id=teacher[0], page =  loop.index, clusterId = clusterid) }}">{{ loop.index }}</a></li>
+                  {% else %}
+                    <li class="page-item"><a  class="page-link" href="{{ url_for('getTeacherWithCluster', id=teacher[0], page =  loop.index, clusterId = clusterid) }}">{{ loop.index }}</a></li>
+                  {% endif %}
+                {% endfor %}
+               
+                <li class="page-item">
+                  {% if next <= page %}
+                  <a class="page-link" href="{{ url_for('getTeacherWithCluster', id=teacher[0], page = next, clusterId = clusterid) }}">
+                    <i class="fa fa-angle-right"></i>
+                    <span class="sr-only">Next</span>
+                  </a>
+                  {% endif %}
+                </li>
+              </ul>
+            </nav>
           
           </div>
         </div>
@@ -176,39 +212,47 @@
             <div class="card-header pb-0 px-3">
               <div class="row">
                 <div class="col-md-6">
-                  <h6 class="mb-0">Suggest Teacher</h6>
+                  <h6 class="mb-0">Gợi ý giảng viên</h6>
                 </div>
               </div>
             </div>
             <div class="card-body pt-4 p-3">
               <ul class="list-group">
                 {% for i in range(0, 10) %}
-                <li class="list-group-item border-0 d-flex justify-content-between ps-0 mb-2 border-radius-lg">
-                  <div class="d-flex align-items-center">
-                    {% if teachers[i][10] == none %}
-                    <img src="{{ url_for('static', filename='assets/img/teacher/avatar.jpeg') }}" style="width: 50px; height: 50px; border-radius: 100px;" alt="profile_image" >
+                {% if teacher[0] != teachers[i][0] and teachers[i][11] > 0 %}
+                  <li class="list-group-item border-0 d-flex justify-content-between ps-0 mb-2 border-radius-lg">
+                    <div class="d-flex align-items-center">
+                      {% if teachers[i][10] == none %}
+                      <img src="{{ url_for('static', filename='assets/img/teacher/avatar.jpeg') }}" style="width: 50px; height: 50px; border-radius: 100px;" alt="profile_image" >
+                      {% else %}
+                      <img src="{{ url_for('static', filename='assets/img/' + teachers[i][10]) }}" style="width: 50px; height: 50px; border-radius: 100px;" alt="profile_image" >
+                      {% endif %}
+                      <div class=" ml-2 d-flex flex-column">
+                        {% if clusterid == none %}
+                          <a href="{{ url_for('getTeacherWithCluster', id=teachers[i][0], page = 1, clusterId = teachers[i][12]) }}">
+                        {% else %}
+                          <a href="{{ url_for('getTeacherWithCluster', id=teachers[i][0], page = 1, clusterId = clusterid) }}">
+                        {%endif%}
+                          <h6 class="mb-1 text-dark text-sm">{{ teachers[i][1] }}</h6>
+                        </a>
+                        <span class="text-xs">
+                          {% if teachers[i][4] == "hut" %}
+                      Trường Đại học Bách Khoa Đà Nẵng
+                    {% elif teachers[i][4] == "hust" %}
+                      Trường Đại học Bách Khoa Hà Nội
                     {% else %}
-                    <img src="{{ url_for('static', filename='assets/img/' + teachers[i][10]) }}" style="width: 50px; height: 50px; border-radius: 100px;" alt="profile_image" >
+                      Trường Đại học Công nghệ - ĐH Quốc gia Hn
                     {% endif %}
-                    <div class=" ml-2 d-flex flex-column">
-                      <a href="{{ url_for('getTeacherWithCluster', id=teachers[i][0], page = 1, clusterId = clusterid) }}">
-                        <h6 class="mb-1 text-dark text-sm">{{ teachers[i][1] }}</h6>
-                      </a>
-                      <span class="text-xs">
-                        {% if teacher[4] == "hut" %}
-                    Trường Đại học Bách Khoa Đà Nẵng
-                  {% elif teacher[4] == "hust" %}
-                    Trường Đại học Bách Khoa Hà Nội
-                  {% else %}
-                    Trường Đại học Công nghệ - ĐH Quốc gia Hn
-                  {% endif %}
-                      </span>
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                  <div class="d-flex align-items-center text-danger text-gradient text-sm font-weight-bold">
-                    {{ teachers[i][11] }} page
-                  </div>
-                </li>
+                    <div class="d-flex align-items-center text-danger text-gradient text-sm font-weight-bold">
+                      {{ teachers[i][11] }} page
+                      <br>
+                      {{ teachers[i][13] }}
+                    </div>
+                  </li>
+                {%endif%}
                 {% endfor %}
               </ul>
             </div>

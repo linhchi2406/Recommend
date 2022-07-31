@@ -64,7 +64,12 @@
     <nav class="navbar navbar-main navbar-expand-lg px-0 mx-4 shadow-none border-radius-xl " id="navbarBlur" data-scroll="false">
         <div class="container-fluid py-1 px-3">
           <nav aria-label="breadcrumb">
-            <h6 class="font-weight-bolder text-white mb-0">Danh sách paper và danh sách giảng viên</h6>
+            <h6 class="font-weight-bolder text-white mb-0">
+              Danh sách paper và giảng viên
+              {% if teachers[0][12] != none %}
+               về chủ đề {{ teachers[0][12] }}
+              {% endif %}
+            </h6>
           </nav>
           <div class="collapse navbar-collapse mt-sm-0 mt-2 me-md-0 me-sm-4" id="navbar">
             <div class="ms-md-auto pe-md-3 d-flex align-items-center">
@@ -106,7 +111,7 @@
         <div class="col-md-8 mt-4">
           <div class="card">
             <div class="card-header pb-0 px-3">
-              <h6 class="mb-0">List page</h6>
+              <h6 class="mb-0">Danh sách bài báo</h6>
             </div>
             <div class="card-body pt-4 p-3">
               <ul class="list-group">

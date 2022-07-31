@@ -204,13 +204,13 @@
             <div class="card-header pb-0 px-3">
               <div class="row">
                 <div class="col-md-6">
-                  <h6 class="mb-0">Suggest Teacher</h6>
+                  <h6 class="mb-0">Gợi ý giảng viên</h6>
                 </div>
               </div>
             </div>
             <div class="card-body pt-4 p-3">
               <ul class="list-group">
-                {% for i in range(0, 5) %}
+                {% for i in range(0, countTeacher) %}
                 <li class="list-group-item border-0 d-flex justify-content-between ps-0 mb-2 border-radius-lg">
                   <div class="d-flex align-items-center">
                     {% if teachers[i][10] == none %}
@@ -219,23 +219,35 @@
                     <img src="{{ url_for('static', filename='assets/img/' + teachers[i][10]) }}" style="width: 50px; height: 50px; border-radius: 100px;" alt="profile_image" >
                     {% endif %}
                     <div class=" ml-2 d-flex flex-column">
+                      {% if clusterid == null %}
+                      <a href="{{ url_for('getTeacherWithCluster', id=teachers[i][0], page = 1, clusterId = teachers[i][12]) }}">
+                        <h6 class="mb-1 text-dark text-sm">{{ teachers[i][1] }}</h6>
+                      </a>
+                      {%else%}
                       <a href="{{ url_for('getTeacherWithCluster', id=teachers[i][0], page = 1, clusterId = clusterid) }}">
                         <h6 class="mb-1 text-dark text-sm">{{ teachers[i][1] }}</h6>
                       </a>
+                      {%endif%}
 
                       <span class="text-xs">
-                        {% if teacher[4] == "hut" %}
+                        {% if teachers[i][4] == "hut" %}
                     Trường Đại học Bách Khoa Đà Nẵng
-                  {% elif teacher[4] == "hust" %}
+                  {% elif teachers[i][4] == "hust" %}
                     Trường Đại học Bách Khoa Hà Nội
-                  {% else %}
+                  {% else  %}
                     Trường Đại học Công nghệ - ĐH Quốc gia Hn
                   {% endif %}
                       </span>
                     </div>
                   </div>
                   <div class="d-flex align-items-center text-danger text-gradient text-sm font-weight-bold">
-                    {{ teachers[i][11] }} page
+                    <div>
+                      {{ teachers[i][11] }} paper                  
+                    </div>
+                    <br>
+                    <div>
+                      {{ teachers[i][13] }}
+                    </div>
                   </div>
                 </li>
                 {% endfor %}

@@ -49,12 +49,22 @@ def getTeacher(id, page):
     cur = mysql.connection.cursor()
     cur.execute(""" SELECT * FROM titles WHERE teacher_id = %s LIMIT %s OFFSET %s""", (id, limit, offset))
     titles = cur.fetchall()
-    # cur.execute(""" SELECT COUNT(DISTINCT topic) as count, topic FROM titles WHERE teacher_id = %s ORDER By count DESC""", (id,))
-    cur.execute(""" SELECT *, (SELECT count(*) FROM titles WHERE
-        teachers.id = titles.teacher_id) as total_pages  FROM teachers LIMIT 5""")
-    teachers = cur.fetchall()
-    print(teachers)
-    return render_template('detail.html', teacher = teacher, teachers = teachers, count = len(titles), titles = titles, page = total_page, next = next, prev = prev, current = currentPage)
+    cur.execute(""" SELECT count(title) as count_title, topic From titles Where teacher_id = %s Group by topic Order By count_title DESC LIMIT 2""", (id,))
+    topics = cur.fetchall()
+    if (len(topics) > 1):
+        cur.execute(""" SELECT *, (SELECT count(title) FROM titles WHERE titles.teacher_id = teachers.id and titles.topic = %s ) as total_pages, 
+        (SELECT id FROM topics WHERE topics.id = %s ), (SELECT name FROM topics WHERE topics.id = %s ) FROM teachers WHERE id <> %s ORDER BY total_pages DESC LIMIT 5""", (topics[0][1],topics[0][1],topics[0][1], id, ))
+        teachers = cur.fetchall()
+        cur.execute(""" SELECT *, (SELECT count(title) FROM titles WHERE titles.teacher_id = teachers.id and  titles.topic = %s ) as total_pages, 
+        (SELECT id FROM topics WHERE topics.id = %s ), (SELECT name FROM topics WHERE topics.id = %s ) FROM teachers WHERE id <> %s ORDER BY total_pages DESC LIMIT 5""", (topics[1][1],topics[1][1], topics[0][1], id,))
+        teacher1 = cur.fetchall()
+        teachers = teachers + teacher1
+    else :
+        cur.execute(""" SELECT *, (SELECT count(title) FROM titles WHERE titles.teacher_id = teachers.id and titles.topic = %s ) as total_pages, 
+        (SELECT id FROM topics WHERE topics.id = %s ), (SELECT name FROM topics WHERE topics.id = %s ) FROM teachers WHERE id <> %s ORDER BY total_pages DESC LIMIT 5""", (topics[0][1],topics[0][1],topics[0][1], id, ))
+        teachers = cur.fetchall()
+
+    return render_template('detail.html', teacher = teacher, teachers = teachers, count = len(titles), titles = titles, page = total_page, next = next, prev = prev, current = currentPage, countTeacher = len(teachers))
 
 @app.route("/university/<string:name>/", defaults={ 'page' : 1}, methods=["GET"])
 @app.route("/university/<string:name>/page/<int:page>", methods=["GET"])
@@ -91,11 +101,11 @@ def getTeacherWithGraph(id):
     neo4j.deleteAllNode()
     for title in titles:
         topic = "Topic0"
-        name = "Wireless_Sensor_Networks"
+        name = "topic0"
         idTopic = 0
         if (title[7] != None):
             topic = "Topic" + str(title[7])
-            name = "Wireless_Sensor_Networks"
+            name = "topic"+ str(title[7])
             idTopic = title[7]
         arr.append(name)
       
@@ -105,12 +115,12 @@ def getTeacherWithGraph(id):
         neo4j.createNodeMain(array, 1)   
     for topic in topics:
         tip = "Topic" + str(topic[0])
-        name = "Wireless_Sensor_Networks"
+        name = "topic" + str(topic[0])
         idTopic = topic[0]
         if (topic[0] == None):
             idTopic = 0
             tip = "Topic" + "0"
-            name = "Wireless_Sensor_Networks"
+            name = "topic0"
         neo4j.createConnect(tip, name, idTopic)
     
     return render_template('graph_teacher.html', teacher = teacher, titles = titles)
@@ -123,6 +133,7 @@ def searchKey(page):
     currentPage = page
     search = request.args.get('key')
     clusterId = recommend.search_key(request.args.get('key'))
+    print(clusterId)
     cur = mysql.connection.cursor()
     cur.execute(""" SELECT * FROM titles WHERE topic = %s""", (clusterId,))
     titles = cur.fetchall()
@@ -134,13 +145,13 @@ def searchKey(page):
     titles = cur.fetchall()
     cur = mysql.connection.cursor()
     cur.execute(""" SELECT *,(SELECT count(*) FROM titles WHERE
-        teachers.id = titles.teacher_id and titles.topic = %s) as total_pages FROM teachers ORDER BY total_pages DESC LIMIT 10""", (clusterId ))
+        teachers.id = titles.teacher_id and titles.topic = %s) as total_pages,  (SELECT name FROM topics WHERE topics.id = %s )  FROM teachers ORDER BY total_pages DESC LIMIT 10""", (clusterId, clusterId ))
     teachers = cur.fetchall()
 
     return render_template('title.html', clusterid = clusterId, titles = titles, count = len(titles), page = total_page, next = next, prev = prev, current = currentPage, search = search, teachers = teachers)
 
-@app.route("/teacher/topic/<int:id>/", defaults={ 'page' : 1}, methods=["GET"])
-@app.route("/teacher/topic/<int:id>/page/<int:page>", methods=["GET"])
+@app.route("/teacher/<int:id>/topic/", defaults={ 'page' : 1}, methods=["GET"])
+@app.route("/teacher/<int:id>/topic/page/<int:page>", methods=["GET"])
 def getTeacherWithCluster(id, page):
     limit = 5
     clusterId = request.args.get('clusterId')
@@ -159,7 +170,7 @@ def getTeacherWithCluster(id, page):
     titles = cur.fetchall()
     cur = mysql.connection.cursor()
     cur.execute(""" SELECT *,(SELECT count(*) FROM titles WHERE
-        teachers.id = titles.teacher_id and titles.topic = %s) as total_pages FROM teachers ORDER BY total_pages DESC LIMIT 10""", (clusterId, ))
+        teachers.id = titles.teacher_id and titles.topic = %s) as total_pages, (SELECT name FROM topics WHERE topics.id = %s ) FROM teachers ORDER BY total_pages DESC LIMIT 10""", (clusterId,clusterId, ))
     teachers = cur.fetchall()
 
     return render_template('detail_cluster.html', teacher = teacher, teachers = teachers, count = len(titles), titles = titles, page = total_page, next = next, prev = prev, current = currentPage, clusterid = clusterId)
